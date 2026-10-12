@@ -1,4 +1,4 @@
-﻿name: Build TG5040
+name: Build TG5040
 
 on:
   push:
@@ -27,16 +27,16 @@ jobs:
       - name: Export Pak
         run: make -C ports/tg5040 ROOT_DIR=../.. export
 
-      - name: Zip Pak
+      - name: Pack Pak
         run: |
           cd dist/tg5040
-          zip -r RetroRead.pak.zip RetroRead.pak/
+          tar -czf RetroRead.pak.tar.gz RetroRead.pak/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: RetroRead.pak
-          path: dist/tg5040/RetroRead.pak.zip
+          path: dist/tg5040/RetroRead.pak.tar.gz
           retention-days: 30
 
   release:
@@ -54,5 +54,5 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: RetroRead.pak.zip
+          files: RetroRead.pak.tar.gz
           generate_release_notes: true
