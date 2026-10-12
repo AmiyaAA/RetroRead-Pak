@@ -115,6 +115,8 @@ Action NextUIInput::mapButton(NextUIButton button) {
         return Action::Left;
     case NextUIButton::Right:
         return Action::Right;
+    case NextUIButton::Power:
+        return Action::Power;
     case NextUIButton::Count:
     default:
         return Action::Back;

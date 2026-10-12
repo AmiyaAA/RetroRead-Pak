@@ -47,12 +47,21 @@ public:
     std::string performanceHudText() const;
     int batteryPercent() const;  // -1 表示不支持
 
+    void enterSleep();  // 电源键触发：关屏并等待唤醒
+
 private:
     std::string buildScreenshotPath() const;
     std::string performanceLogPath() const;
     void updatePerformanceStats(float dt);
     void sampleCpuUsage();
     void appendPerformanceLogLine() const;
+
+    // 屏幕电源控制
+    static std::string findBacklightPath();
+    void screenSleep();
+    void screenWake();
+    int savedBrightness_ = -1;
+    std::string backlightPath_;
 
     bool running_ = false;
     float averageFrameMs_ = 0.0f;

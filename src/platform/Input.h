@@ -15,7 +15,8 @@ enum class Action {
     Right,
     PrevChapter,
     NextChapter,
-    Skip,  // Y 键长按快速跳过
+    Skip,   // Y 键长按快速跳过
+    Power,  // 电源键：关屏休眠/唤醒
 };
 
 class Input {

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <thread>
@@ -16,6 +17,8 @@
 #else
 #include <unistd.h>
 #endif
+
+namespace fs = std::filesystem;
 
 namespace {
 std::uint64_t currentTimeMs() {
@@ -102,6 +105,16 @@ void Application::run() {
         input_->poll();
         if (input_->quitRequested()) {
             requestQuit();
+        }
+
+        // 电源键：关屏休眠
+        if (input_->wasPressed(Action::Power)) {
+            enterSleep();
+            forceRender = true;
+            if (!running_) {
+                break;
+            }
+            continue;
         }
 
         sceneManager_.update(dt);
@@ -366,4 +379,103 @@ int Application::batteryPercent() const {
     }
     return -1;
 #endif
+}
+
+std::string Application::findBacklightPath() {
+    // 环境变量优先
+    if (const char* envPath = std::getenv("NEXTREADING_BACKLIGHT_PATH")) {
+        if (fs::exists(envPath)) {
+            return envPath;
+        }
+    }
+
+#ifndef _WIN32
+    // 自动扫描 /sys/class/backlight/ 下的设备
+    const fs::path backlightRoot("/sys/class/backlight");
+    if (fs::exists(backlightRoot)) {
+        for (const auto& entry : fs::directory_iterator(backlightRoot)) {
+            const fs::path brightnessFile = entry.path() / "brightness";
+            if (fs::exists(brightnessFile)) {
+                return brightnessFile.string();
+            }
+        }
+    }
+#endif
+    return {};
+}
+
+void Application::screenSleep() {
+    if (backlightPath_.empty()) {
+        backlightPath_ = findBacklightPath();
+    }
+    if (backlightPath_.empty()) {
+        return;
+    }
+
+    std::ifstream in(backlightPath_);
+    if (!in.is_open()) {
+        return;
+    }
+    in >> savedBrightness_;
+    in.close();
+
+    std::ofstream out(backlightPath_);
+    if (out.is_open()) {
+        out << 0;
+    }
+}
+
+void Application::screenWake() {
+    if (backlightPath_.empty() || savedBrightness_ < 0) {
+        return;
+    }
+
+    std::ofstream out(backlightPath_);
+    if (out.is_open()) {
+        out << savedBrightness_;
+    }
+    savedBrightness_ = -1;
+}
+
+void Application::enterSleep() {
+    screenSleep();
+
+    // 先等电源键松开，避免同一个按下事件立刻唤醒
+    while (running_ && input_->isHeld(Action::Power)) {
+        input_->poll();
+        if (input_->quitRequested()) {
+            requestQuit();
+            screenWake();
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+
+    // 等待任意按键唤醒
+    while (running_) {
+        input_->poll();
+        if (input_->quitRequested()) {
+            requestQuit();
+            break;
+        }
+
+        const bool wakeTriggered =
+            input_->wasPressed(Action::Power) ||
+            input_->wasPressed(Action::Confirm) ||
+            input_->wasPressed(Action::Back) ||
+            input_->wasPressed(Action::Start) ||
+            input_->wasPressed(Action::OpenMenu) ||
+            input_->isHeld(Action::Power) ||
+            input_->isHeld(Action::Confirm);
+
+        if (wakeTriggered) {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    screenWake();
+    // 丢弃休眠期间累积的时钟增量
+    clock_->tick();
 }

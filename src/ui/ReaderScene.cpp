@@ -355,8 +355,8 @@ void ReaderScene::render(Renderer& renderer) {
                   std::to_string(chapter->sentences.size()) + (progress_.autoPlay ? "  AUTO" : "  MANUAL")
             : "Finished";
     const std::string hint =
-        progress_.autoPlay ? "AUTO  L1/R1 章节  Start 设置  Menu 返回"
-                           : "A 下一句  X 自动  Y 长按跳过  Start 设置  Menu 返回";
+        progress_.autoPlay ? "AUTO  L1/R1 章节  B 返回  Start 设置"
+                           : "A 下一句  B 返回  X 自动  Y 长按跳过  Start 设置";
 
     renderer.drawText(
         book_.title,

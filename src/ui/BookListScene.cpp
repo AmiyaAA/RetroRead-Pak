@@ -196,7 +196,7 @@ void BookListScene::render(Renderer& renderer) {
         app_.settings().fontPreset);
 
     renderer.drawText(
-        "A: continue  Y: chapters  Menu: quit",
+        "A: continue  B: quit  Y: chapters",
         Rect{leftMargin, 96, headerWidth, 40},
         palette.secondaryText,
         uiFont(16, 32),

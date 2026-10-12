@@ -6,8 +6,8 @@
 
 namespace {
 void triggerScreenshotCombo(
-    std::array<bool, static_cast<std::size_t>(Action::Skip) + 1>& pressed,
-    std::array<bool, static_cast<std::size_t>(Action::Skip) + 1>& held) {
+    std::array<bool, static_cast<std::size_t>(Action::Power) + 1>& pressed,
+    std::array<bool, static_cast<std::size_t>(Action::Power) + 1>& held) {
     const std::size_t startIndex = static_cast<std::size_t>(Action::Start);
     const std::size_t secondaryIndex = static_cast<std::size_t>(Action::Secondary);
     const std::size_t screenshotIndex = static_cast<std::size_t>(Action::Screenshot);
@@ -160,6 +160,8 @@ const char* SDLInput::actionName(Action action) const {
         return "NextChapter";
     case Action::Skip:
         return "Skip";
+    case Action::Power:
+        return "Power";
     }
 
     return "Unknown";
@@ -233,6 +235,13 @@ void SDLInput::handleKeyDown(SDL_Keycode key) {
         setHeld(Action::Back, true);
         logPressed(Action::Back, "keyboard", static_cast<int>(key));
         break;
+    case SDLK_b:
+        setPressed(Action::Back);
+        setHeld(Action::Back, true);
+        setPressed(Action::OpenMenu);
+        setHeld(Action::OpenMenu, true);
+        logPressed(Action::Back, "keyboard", static_cast<int>(key));
+        break;
     case SDLK_c:
     case SDLK_s:
         setPressed(Action::Secondary);
@@ -244,6 +253,11 @@ void SDLInput::handleKeyDown(SDL_Keycode key) {
         setPressed(Action::Skip);
         setHeld(Action::Skip, true);
         logPressed(Action::Skip, "keyboard", static_cast<int>(key));
+        break;
+    case SDLK_POWER:
+        setPressed(Action::Power);
+        setHeld(Action::Power, true);
+        logPressed(Action::Power, "keyboard", static_cast<int>(key));
         break;
     case SDLK_UP:
         setPressed(Action::Up);
@@ -310,12 +324,19 @@ void SDLInput::handleKeyUp(SDL_Keycode key) {
     case SDLK_BACKSPACE:
         setHeld(Action::Back, false);
         break;
+    case SDLK_b:
+        setHeld(Action::Back, false);
+        setHeld(Action::OpenMenu, false);
+        break;
     case SDLK_c:
     case SDLK_s:
         setHeld(Action::Secondary, false);
         break;
     case SDLK_y:
         setHeld(Action::Skip, false);
+        break;
+    case SDLK_POWER:
+        setHeld(Action::Power, false);
         break;
     case SDLK_UP:
         setHeld(Action::Up, false);
@@ -354,9 +375,11 @@ void SDLInput::handleControllerButtonDown(Uint8 button) {
         logPressed(Action::Confirm, "controller", button);
         break;
     case SDL_CONTROLLER_BUTTON_B:
-        setPressed(Action::FastForward);
-        setHeld(Action::FastForward, true);
-        logPressed(Action::FastForward, "controller", button);
+        setPressed(Action::Back);
+        setHeld(Action::Back, true);
+        setPressed(Action::OpenMenu);
+        setHeld(Action::OpenMenu, true);
+        logPressed(Action::Back, "controller", button);
         break;
     case SDL_CONTROLLER_BUTTON_X:
         setPressed(Action::ToggleAuto);
@@ -423,7 +446,8 @@ void SDLInput::handleControllerButtonUp(Uint8 button) {
         setHeld(Action::Confirm, false);
         break;
     case SDL_CONTROLLER_BUTTON_B:
-        setHeld(Action::FastForward, false);
+        setHeld(Action::Back, false);
+        setHeld(Action::OpenMenu, false);
         break;
     case SDL_CONTROLLER_BUTTON_X:
         setHeld(Action::ToggleAuto, false);
@@ -514,7 +538,7 @@ bool SDLInput::tryMapJoystickButton(Uint8 button, Action& action) const {
         return true;
     }
     if (button == static_cast<Uint8>(buttonB_)) {
-        action = Action::FastForward;
+        action = Action::Back;
         return true;
     }
     if (button == static_cast<Uint8>(buttonX_)) {

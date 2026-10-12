@@ -132,7 +132,7 @@ void SettingsScene::render(Renderer& renderer) {
         settings.fontPreset);
 
     renderer.drawText(
-        "上/下: 选择  左/右: 调整  Start/Menu: 返回",
+        "上/下: 选择  左/右: 调整  B/Start: 返回",
         Rect{60, 92, 920, uiSpacing(24, 32)},
         palette.secondaryText,
         uiFont(16, 22),
