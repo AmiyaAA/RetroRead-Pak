@@ -29,6 +29,8 @@ export LD_LIBRARY_PATH="$APP_ROOT/lib:${LD_LIBRARY_PATH:-}"
 export SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS=1
 export SDL_GAMECONTROLLER_USE_BUTTON_LABELS=0
 export NEXTREADING_INPUT_MODE="${NEXTREADING_INPUT_MODE:-joystick}"
+# 若设备电量路径不在默认列表中，可取消注释并设置正确路径：
+# export NEXTREADING_BATTERY_CAPACITY_PATH="/sys/class/power_supply/battery/capacity"
 # TrimUI Brick default gamepad mapping (can be overridden by env).
 export NEXTREADING_BTN_A="${NEXTREADING_BTN_A:-1}"
 export NEXTREADING_BTN_B="${NEXTREADING_BTN_B:-0}"

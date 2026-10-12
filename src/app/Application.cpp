@@ -1,6 +1,7 @@
 #include "app/Application.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <thread>
@@ -332,11 +333,26 @@ int Application::batteryPercent() const {
     }
     return -1;
 #else
+    // 环境变量优先：允许设备特定路径覆盖
+    if (const char* envPath = std::getenv("NEXTREADING_BATTERY_CAPACITY_PATH")) {
+        std::ifstream f(envPath);
+        if (f.is_open()) {
+            int val = -1;
+            f >> val;
+            if (val >= 0 && val <= 100) {
+                return val;
+            }
+        }
+    }
+
     // TrimUI/Linux 设备通常通过 sysfs 暴露电量
     static const char* kPaths[] = {
         "/sys/class/power_supply/battery/capacity",
         "/sys/class/power_supply/BAT0/capacity",
         "/sys/class/power_supply/BAT1/capacity",
+        "/sys/class/power_supply/axp2202-battery/capacity",
+        "/sys/class/power_supply/bd71827-battery/capacity",
+        "/sys/devices/platform/axp2202.10/power_supply/battery/capacity",
     };
     for (const char* path : kPaths) {
         std::ifstream f(path);

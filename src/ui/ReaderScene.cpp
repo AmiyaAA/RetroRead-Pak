@@ -559,12 +559,8 @@ void ReaderScene::revealCurrentSentence() {
 }
 
 void ReaderScene::skipCurrentSentence() {
-    // \u5982\u679c\u6b63\u5728\u6253\u5b57\uff0c\u5148\u5168\u90e8\u663e\u793a\u518d\u8df3\u4e0b\u4e00\u53e5\uff1b\u5982\u679c\u5df2\u7b49\u5f85\u8f93\u5165\uff0c\u76f4\u63a5\u8df3\u4e0b\u4e00\u53e5
+    // 打字中先全部显示，再根据是否有后续分页决定翻页或跳下一句
     if (state_ == ReaderState::Typing) {
-        if (hasMorePagedLines(app_.renderer())) {
-            advancePage(app_.renderer());
-            return;
-        }
         typer_.revealAll();
         renderRequested_ = true;
     }
