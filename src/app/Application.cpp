@@ -10,7 +10,9 @@
 
 #include "ui/BookListScene.h"
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
 #endif
 
@@ -110,7 +112,8 @@ void Application::run() {
             input_->wasPressed(Action::Back) || input_->wasPressed(Action::Secondary) ||
             input_->wasPressed(Action::Up) || input_->wasPressed(Action::Down) ||
             input_->wasPressed(Action::Left) || input_->wasPressed(Action::Right) ||
-            input_->wasPressed(Action::PrevChapter) || input_->wasPressed(Action::NextChapter);
+            input_->wasPressed(Action::PrevChapter) || input_->wasPressed(Action::NextChapter) ||
+            input_->isHeld(Action::Skip);
 
         const bool shouldRender =
             forceRender || hasInput || sceneManager_.shouldRenderContinuously() || sceneManager_.consumeRenderRequest();
@@ -319,4 +322,32 @@ void Application::appendPerformanceLogLine() const {
     line << '\n';
 
     fileSystem_->writeTextFile(path, content + line.str());
+}
+
+int Application::batteryPercent() const {
+#ifdef _WIN32
+    SYSTEM_POWER_STATUS sps{};
+    if (GetSystemPowerStatus(&sps) && sps.BatteryLifePercent != 255) {
+        return static_cast<int>(sps.BatteryLifePercent);
+    }
+    return -1;
+#else
+    // TrimUI/Linux 设备通常通过 sysfs 暴露电量
+    static const char* kPaths[] = {
+        "/sys/class/power_supply/battery/capacity",
+        "/sys/class/power_supply/BAT0/capacity",
+        "/sys/class/power_supply/BAT1/capacity",
+    };
+    for (const char* path : kPaths) {
+        std::ifstream f(path);
+        if (f.is_open()) {
+            int val = -1;
+            f >> val;
+            if (val >= 0 && val <= 100) {
+                return val;
+            }
+        }
+    }
+    return -1;
+#endif
 }

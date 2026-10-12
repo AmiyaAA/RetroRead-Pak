@@ -53,8 +53,8 @@ private:
     void setHeld(Action action, bool held);
 
 private:
-    std::array<bool, static_cast<std::size_t>(Action::NextChapter) + 1> pressed_{};
-    std::array<bool, static_cast<std::size_t>(Action::NextChapter) + 1> held_{};
+    std::array<bool, static_cast<std::size_t>(Action::Skip) + 1> pressed_{};
+    std::array<bool, static_cast<std::size_t>(Action::Skip) + 1> held_{};
     std::array<bool, static_cast<std::size_t>(NextUIButton::Count)> deviceHeld_{};
     bool quitRequested_ = false;
 };

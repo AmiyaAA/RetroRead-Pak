@@ -98,7 +98,7 @@ Action NextUIInput::mapButton(NextUIButton button) {
     case NextUIButton::X:
         return Action::ToggleAuto;
     case NextUIButton::Y:
-        return Action::Secondary;
+        return Action::Skip;
     case NextUIButton::L1:
         return Action::PrevChapter;
     case NextUIButton::R1:

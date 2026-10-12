@@ -1,0 +1,58 @@
+﻿name: Build TG5040
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Cross-compile for TrimUI Brick / Smart Pro
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/loveretro/tg5040-toolchain
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: make -C ports/tg5040 ROOT_DIR=../..
+
+      - name: Export Pak
+        run: make -C ports/tg5040 ROOT_DIR=../.. export
+
+      - name: Zip Pak
+        run: |
+          cd dist/tg5040
+          zip -r RetroRead.pak.zip RetroRead.pak/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RetroRead.pak
+          path: dist/tg5040/RetroRead.pak.zip
+          retention-days: 30
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: RetroRead.pak
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: RetroRead.pak.zip
+          generate_release_notes: true

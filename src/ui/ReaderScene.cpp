@@ -288,6 +288,24 @@ void ReaderScene::onExit() {
 
 void ReaderScene::update(float dt) {
     app_.textBlipPlayer().update(dt);
+
+    // Y 长按跳过逻辑：在 handleInput 之前计时，这里有 dt
+    Input& input = app_.input();
+    if (input.isHeld(Action::Skip) && state_ != ReaderState::Finished) {
+        skipHoldTimer_ += dt;
+        if (skipHoldTimer_ >= kSkipInitialDelay_) {
+            const float elapsed = skipHoldTimer_ - kSkipInitialDelay_;
+            const int expected = 1 + static_cast<int>(elapsed / kSkipRepeatInterval_);
+            if (expected > skipSkipCount_) {
+                ++skipSkipCount_;
+                skipCurrentSentence();
+            }
+        }
+    } else {
+        skipHoldTimer_ = 0.0f;
+        skipSkipCount_ = 0;
+    }
+
     handleInput();
 
     switch (state_) {
@@ -332,13 +350,13 @@ void ReaderScene::render(Renderer& renderer) {
     maxVisibleLines_ = visibleLineCapacity(renderer);
     const std::string status =
         chapter != nullptr
-            ? "Chapter " + std::to_string(progress_.chapterIndex + 1) + "/" + std::to_string(book_.chapters.size()) +
-                  "  Sentence " + std::to_string(progress_.sentenceIndex + 1) + "/" +
+            ? "Ch " + std::to_string(progress_.chapterIndex + 1) + "/" + std::to_string(book_.chapters.size()) +
+                  "  Sent " + std::to_string(progress_.sentenceIndex + 1) + "/" +
                   std::to_string(chapter->sentences.size()) + (progress_.autoPlay ? "  AUTO" : "  MANUAL")
             : "Finished";
     const std::string hint =
-        progress_.autoPlay ? "AUTO  L1/R1 chapter  Start settings  Menu back"
-                           : "A next  X auto  L1/R1 chapter  Start settings  Menu back";
+        progress_.autoPlay ? "AUTO  L1/R1 章节  Start 设置  Menu 返回"
+                           : "A 下一句  X 自动  Y 长按跳过  Start 设置  Menu 返回";
 
     renderer.drawText(
         book_.title,
@@ -374,6 +392,21 @@ void ReaderScene::render(Renderer& renderer) {
             readerMetaFont(),
             TextAlign::Right,
             settings.fontPreset);
+    } else {
+        // 右上角显示设备电量
+        const int bat = app_.batteryPercent();
+        if (bat >= 0) {
+            const std::string batText = std::to_string(bat) + "%";
+            renderer.drawText(
+                batText,
+                Rect{screenWidth - horizontalMargin - 100,
+                     uiSpacing(std::max(24, screenHeight / 22), 28),
+                     80, uiSpacing(22, 30)},
+                palette.secondaryText,
+                readerMetaFont(),
+                TextAlign::Right,
+                settings.fontPreset);
+        }
     }
 
     if (state_ == ReaderState::Finished || sentence == nullptr) {
@@ -402,7 +435,8 @@ void ReaderScene::render(Renderer& renderer) {
 
 bool ReaderScene::shouldRenderContinuously() const {
     return state_ == ReaderState::Typing || state_ == ReaderState::AutoAdvanceDelay ||
-           app_.settings().performanceMode == PerformanceMode::Hud;
+           app_.settings().performanceMode == PerformanceMode::Hud ||
+           app_.input().isHeld(Action::Skip);
 }
 
 bool ReaderScene::consumeRenderRequest() {
@@ -436,14 +470,16 @@ void ReaderScene::handleInput() {
         }
     }
 
-    if (input.wasPressed(Action::PrevChapter)) {
-        moveToPreviousChapter();
-        return;
-    }
+    if (app_.settings().enableChapterKeys) {
+        if (input.wasPressed(Action::PrevChapter)) {
+            moveToPreviousChapter();
+            return;
+        }
 
-    if (input.wasPressed(Action::NextChapter)) {
-        moveToNextChapter();
-        return;
+        if (input.wasPressed(Action::NextChapter)) {
+            moveToNextChapter();
+            return;
+        }
     }
 
     if (input.wasPressed(Action::FastForward)) {
@@ -521,6 +557,27 @@ void ReaderScene::revealCurrentSentence() {
     state_ = ReaderState::Typing;
     renderRequested_ = true;
 }
+
+void ReaderScene::skipCurrentSentence() {
+    // \u5982\u679c\u6b63\u5728\u6253\u5b57\uff0c\u5148\u5168\u90e8\u663e\u793a\u518d\u8df3\u4e0b\u4e00\u53e5\uff1b\u5982\u679c\u5df2\u7b49\u5f85\u8f93\u5165\uff0c\u76f4\u63a5\u8df3\u4e0b\u4e00\u53e5
+    if (state_ == ReaderState::Typing) {
+        if (hasMorePagedLines(app_.renderer())) {
+            advancePage(app_.renderer());
+            return;
+        }
+        typer_.revealAll();
+        renderRequested_ = true;
+    }
+    if (state_ == ReaderState::WaitingForInput || state_ == ReaderState::AutoAdvanceDelay ||
+        (state_ == ReaderState::Typing && typer_.isComplete())) {
+        if (hasMorePagedLines(app_.renderer())) {
+            advancePage(app_.renderer());
+            return;
+        }
+        moveToNextSentence();
+    }
+}
+
 
 void ReaderScene::moveToNextSentence() {
     const Chapter* chapter = currentChapter();

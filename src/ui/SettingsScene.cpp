@@ -103,7 +103,7 @@ void SettingsScene::update(float dt) {
         clampScroll();
     }
 
-    if (input.wasPressed(Action::Down) && selectedIndex_ < 5) {
+    if (input.wasPressed(Action::Down) && selectedIndex_ < 6) {
         ++selectedIndex_;
         clampScroll();
     }
@@ -124,7 +124,7 @@ void SettingsScene::render(Renderer& renderer) {
     renderer.clear(palette.screenBackground);
 
     renderer.drawText(
-        "Reader Settings",
+        "阅读设置",
         Rect{60, 18, 860, uiSpacing(40, 70)},
         palette.headerText,
         uiFont(28, 42),
@@ -132,7 +132,7 @@ void SettingsScene::render(Renderer& renderer) {
         settings.fontPreset);
 
     renderer.drawText(
-        "Up/Down: select  Left/Right: change  Start/Menu: back",
+        "上/下: 选择  左/右: 调整  Start/Menu: 返回",
         Rect{60, 92, 920, uiSpacing(24, 32)},
         palette.secondaryText,
         uiFont(16, 22),
@@ -149,18 +149,19 @@ void SettingsScene::render(Renderer& renderer) {
             settings.fontPreset);
     }
 
-    const std::string rows[6] = {
-        "Reader Font Size: " + std::to_string(settings.fontSize),
-        "Text Speed: " + std::to_string(settings.textSpeed) + " ms",
-        std::string("Text Voice: ") + textVoiceModeName(settings.textVoiceMode),
-        std::string("Theme: ") + themePresetName(settings.themePreset),
-        std::string("Font: ") + fontPresetName(settings.fontPreset),
-        std::string("Performance: ") + performanceModeName(settings.performanceMode),
+    const std::string rows[7] = {
+        "文字大小: " + std::to_string(settings.fontSize),
+        "打字速度: " + std::to_string(settings.textSpeed) + " ms",
+        std::string("语音模式: ") + textVoiceModeName(settings.textVoiceMode),
+        std::string("主题: ") + themePresetName(settings.themePreset),
+        std::string("字体: ") + fontPresetName(settings.fontPreset),
+        std::string("性能模式: ") + performanceModeName(settings.performanceMode),
+        std::string("章节键 (L1/R1): ") + (settings.enableChapterKeys ? "开启" : "关闭"),
     };
 
     int y = uiSpacing(170, 200);
     const int startIndex = scrollOffset_;
-    const int endIndex = std::min(6, startIndex + 5);
+    const int endIndex = std::min(7, startIndex + 5);
     for (int i = startIndex; i < endIndex; ++i) {
         const bool selected = i == selectedIndex_;
         const Rect rowRect{72, y - uiSpacing(18, 26), 884, uiSpacing(62, 98)};
@@ -222,6 +223,9 @@ void SettingsScene::applyDelta(int delta) {
             settings.performanceMode = static_cast<PerformanceMode>(mode);
         }
         break;
+    case 6:
+        settings.enableChapterKeys = !settings.enableChapterKeys;
+        break;
     default:
         break;
     }
@@ -235,7 +239,7 @@ void SettingsScene::returnToReader() {
 
 void SettingsScene::clampScroll() {
     const int visibleRows = 5;
-    const int maxOffset = std::max(0, 6 - visibleRows);
+    const int maxOffset = std::max(0, 7 - visibleRows);
     if (selectedIndex_ < scrollOffset_) {
         scrollOffset_ = selectedIndex_;
     }

@@ -45,6 +45,7 @@ public:
     const ReaderSettings& settings() const;
     ReaderSettings& settings();
     std::string performanceHudText() const;
+    int batteryPercent() const;  // -1 表示不支持
 
 private:
     std::string buildScreenshotPath() const;

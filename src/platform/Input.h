@@ -15,6 +15,7 @@ enum class Action {
     Right,
     PrevChapter,
     NextChapter,
+    Skip,  // Y 键长按快速跳过
 };
 
 class Input {

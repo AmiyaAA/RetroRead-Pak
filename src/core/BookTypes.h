@@ -70,6 +70,7 @@ struct ReaderSettings {
     ThemePreset themePreset = ThemePreset::ClassicDark;
     FontPreset fontPreset = FontPreset::Normal;
     PerformanceMode performanceMode = PerformanceMode::Off;
+    bool enableChapterKeys = true;  // L1/R1 章节跳转键
 };
 
 struct BookListItem {

@@ -203,6 +203,29 @@ void BookListScene::render(Renderer& renderer) {
         TextAlign::Left,
         app_.settings().fontPreset);
 
+    // 右上角显示设备电量
+    if (app_.settings().performanceMode == PerformanceMode::Hud) {
+        renderer.drawText(
+            app_.performanceHudText(),
+            Rect{screenWidth - 360, 18, 320, 24},
+            palette.secondaryText,
+            uiFont(14, 18),
+            TextAlign::Right,
+            app_.settings().fontPreset);
+    } else {
+        const int bat = app_.batteryPercent();
+        if (bat >= 0) {
+            const std::string batText = std::to_string(bat) + "%";
+            renderer.drawText(
+                batText,
+                Rect{screenWidth - leftMargin - 80, uiSpacing(28, 50), 72, uiSpacing(24, 40)},
+                palette.secondaryText,
+                uiFont(16, 32),
+                TextAlign::Right,
+                app_.settings().fontPreset);
+        }
+    }
+
     if (books_.empty()) {
         renderer.drawText(
             "Books folder is empty.",
@@ -249,16 +272,6 @@ void BookListScene::render(Renderer& renderer) {
             TextAlign::Left,
             app_.settings().fontPreset);
         y += uiSpacing(48, 88);
-    }
-
-    if (app_.settings().performanceMode == PerformanceMode::Hud) {
-        renderer.drawText(
-            app_.performanceHudText(),
-            Rect{renderer.screenWidth() - 360, 18, 320, 24},
-            palette.secondaryText,
-            uiFont(14, 18),
-            TextAlign::Right,
-            app_.settings().fontPreset);
     }
 }
 
