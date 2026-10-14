@@ -211,6 +211,16 @@ std::vector<std::string> wrapTextSmart(
     return lines;
 }
 
+int uiFont(int normalSize, int handheldSize) {
+#ifdef NEXTREADING_TG5040
+    (void)normalSize;
+    return handheldSize;
+#else
+    (void)handheldSize;
+    return normalSize;
+#endif
+}
+
 int uiSpacing(int normalValue, int handheldValue) {
 #ifdef NEXTREADING_TG5040
     (void)normalValue;
@@ -393,7 +403,7 @@ void ReaderScene::render(Renderer& renderer) {
             TextAlign::Right,
             settings.fontPreset);
     } else {
-        // 右上角显示时间
+        // 右上角显示时间（字体与选书页面一致）
         const std::string timeText = app_.currentTimeString();
         renderer.drawText(
             timeText,
@@ -401,7 +411,7 @@ void ReaderScene::render(Renderer& renderer) {
                  uiSpacing(std::max(24, screenHeight / 22), 28),
                  80, uiSpacing(22, 30)},
             palette.secondaryText,
-            readerMetaFont(),
+            uiFont(16, 32),
             TextAlign::Right,
             settings.fontPreset);
         // 电量
@@ -414,7 +424,7 @@ void ReaderScene::render(Renderer& renderer) {
                      uiSpacing(std::max(24, screenHeight / 22), 28),
                      80, uiSpacing(22, 30)},
                 palette.secondaryText,
-                readerMetaFont(),
+                uiFont(16, 32),
                 TextAlign::Right,
                 settings.fontPreset);
         }
@@ -570,13 +580,13 @@ void ReaderScene::revealCurrentSentence() {
 }
 
 void ReaderScene::skipCurrentSentence() {
-    // 打字中先全部显示，再根据是否有后续分页决定翻页或跳下一句
+    // 长按 Y 跳过：直接跳到下一句，无打字动画
     if (state_ == ReaderState::Typing) {
         typer_.revealAll();
+        state_ = ReaderState::WaitingForInput;
         renderRequested_ = true;
     }
-    if (state_ == ReaderState::WaitingForInput || state_ == ReaderState::AutoAdvanceDelay ||
-        (state_ == ReaderState::Typing && typer_.isComplete())) {
+    if (state_ == ReaderState::WaitingForInput || state_ == ReaderState::AutoAdvanceDelay) {
         if (hasMorePagedLines(app_.renderer())) {
             advancePage(app_.renderer());
             return;

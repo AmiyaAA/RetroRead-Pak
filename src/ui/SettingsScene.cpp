@@ -191,7 +191,7 @@ void SettingsScene::applyDelta(int delta) {
     }
     case 1: {
         int value = static_cast<int>(settings.textSpeed) + delta * 5;
-        settings.textSpeed = static_cast<std::uint32_t>(std::max(5, std::min(120, value)));
+        settings.textSpeed = static_cast<std::uint32_t>(std::max(0, std::min(120, value)));
         progress_.textSpeed = settings.textSpeed;
         break;
     }

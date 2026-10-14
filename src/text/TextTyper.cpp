@@ -9,13 +9,20 @@ void TextTyper::start(const std::string& text, int baseSpeedMs) {
     codepoints_ = utf8::splitCodepoints(text_);
     visibleChars_ = 0;
     accumulatedMs_ = 0.0f;
-    baseSpeedMs_ = std::max(baseSpeedMs, 1);
-    skipNextUpdate_ = true;
+    baseSpeedMs_ = std::max(baseSpeedMs, 0);
+    skipNextUpdate_ = (baseSpeedMs_ > 0);  // 0ms: no skip, reveal immediately
 }
 
 int TextTyper::update(float dtSeconds) {
     if (isComplete()) {
         return 0;
+    }
+
+    // Speed 0ms: instantly reveal all
+    if (baseSpeedMs_ == 0) {
+        const int advanced = static_cast<int>(codepoints_.size() - visibleChars_);
+        visibleChars_ = codepoints_.size();
+        return advanced;
     }
 
     if (skipNextUpdate_) {
