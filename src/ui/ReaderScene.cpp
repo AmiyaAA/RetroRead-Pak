@@ -393,7 +393,18 @@ void ReaderScene::render(Renderer& renderer) {
             TextAlign::Right,
             settings.fontPreset);
     } else {
-        // 右上角显示设备电量
+        // 右上角显示时间
+        const std::string timeText = app_.currentTimeString();
+        renderer.drawText(
+            timeText,
+            Rect{screenWidth - horizontalMargin - 180,
+                 uiSpacing(std::max(24, screenHeight / 22), 28),
+                 80, uiSpacing(22, 30)},
+            palette.secondaryText,
+            readerMetaFont(),
+            TextAlign::Right,
+            settings.fontPreset);
+        // 电量
         const int bat = app_.batteryPercent();
         if (bat >= 0) {
             const std::string batText = std::to_string(bat) + "%";

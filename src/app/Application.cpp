@@ -1,7 +1,9 @@
 #include "app/Application.h"
 
 #include <chrono>
+#include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -379,6 +381,20 @@ int Application::batteryPercent() const {
     }
     return -1;
 #endif
+}
+
+std::string Application::currentTimeString() const {
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm local{};
+#ifdef _WIN32
+    localtime_s(&local, &t);
+#else
+    localtime_r(&t, &local);
+#endif
+    char buf[6];
+    std::snprintf(buf, sizeof(buf), "%02d:%02d", local.tm_hour, local.tm_min);
+    return buf;
 }
 
 std::string Application::findBacklightPath() {

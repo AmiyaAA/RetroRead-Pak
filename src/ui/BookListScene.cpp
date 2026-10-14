@@ -161,7 +161,7 @@ void BookListScene::update(float dt) {
         return;
     }
 
-    if (input.wasPressed(Action::Secondary)) {
+    if (input.wasPressed(Action::Secondary) || input.wasPressed(Action::Skip)) {
         if (books_.empty()) {
 #ifdef NEXTREADING_TG5040
             return;
@@ -203,7 +203,7 @@ void BookListScene::render(Renderer& renderer) {
         TextAlign::Left,
         app_.settings().fontPreset);
 
-    // 右上角显示设备电量
+    // 右上角显示时间和电量
     if (app_.settings().performanceMode == PerformanceMode::Hud) {
         renderer.drawText(
             app_.performanceHudText(),
@@ -213,6 +213,16 @@ void BookListScene::render(Renderer& renderer) {
             TextAlign::Right,
             app_.settings().fontPreset);
     } else {
+        // 当前时间
+        const std::string timeText = app_.currentTimeString();
+        renderer.drawText(
+            timeText,
+            Rect{screenWidth - leftMargin - 160, uiSpacing(28, 50), 72, uiSpacing(24, 40)},
+            palette.secondaryText,
+            uiFont(16, 32),
+            TextAlign::Right,
+            app_.settings().fontPreset);
+        // 电量
         const int bat = app_.batteryPercent();
         if (bat >= 0) {
             const std::string batText = std::to_string(bat) + "%";

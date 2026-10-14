@@ -46,6 +46,7 @@ public:
     ReaderSettings& settings();
     std::string performanceHudText() const;
     int batteryPercent() const;  // -1 表示不支持
+    std::string currentTimeString() const;  // 返回 HH:MM 格式的本地时间
 
     void enterSleep();  // 电源键触发：关屏并等待唤醒
 
